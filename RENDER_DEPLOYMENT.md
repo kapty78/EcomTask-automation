@@ -1,12 +1,12 @@
-# n8n Deployment auf Render
+# n8n Docker Deployment auf Render
 
-Diese Anleitung erklärt, wie ihr n8n auf Render deployt.
+Diese Anleitung erklärt, wie ihr n8n mit Docker auf Render deployt.
 
 ## Voraussetzungen
 
 - Ein Render-Account
 - Git-Repository mit dem n8n-Code
-- Node.js 22+ Support
+- Docker-Support auf Render
 
 ## Deployment-Schritte
 
@@ -14,124 +14,83 @@ Diese Anleitung erklärt, wie ihr n8n auf Render deployt.
 
 1. Geht zu [render.com](https://render.com) und loggt euch ein
 2. Klickt auf "New +" und wählt "Web Service"
-3. Verbindet euer Git-Repository
-4. Wählt den Branch aus (meist `main` oder `master`)
+3. Verbindet euer Git-Repository: `kapty78/EcomTask-automation`
+4. Wählt den Branch aus (meist `main`)
 
 ### 2. Service-Konfiguration
 
 **Name:** `n8n-workflow-automation` (oder euer gewünschter Name)
-**Environment:** `Node`
+**Environment:** `Docker`
 **Region:** Wählt die Region, die euch am nächsten ist
-**Branch:** `main` (oder euer Standard-Branch)
+**Branch:** `main`
 **Root Directory:** Leer lassen (Root des Repositories)
 
-### 3. Build & Start Commands
+### 3. Docker-Konfiguration
 
-**Build Command:**
-```bash
-npm install -g pnpm@10.12.1
-pnpm install
-pnpm run build:render
-```
-
-**Start Command:**
-```bash
-cd packages/cli && pnpm start
-```
+**Dockerfile Path:** `./Dockerfile`
+- Das Dockerfile erweitert das offizielle `n8nio/n8n:1.74.1` Image
+- Eure Branding-Dateien werden automatisch eingebaut
+- Port 5678 wird exponiert
+- Health Check ist konfiguriert
 
 ### 4. Umgebungsvariablen
 
-Fügt folgende Umgebungsvariablen hinzu:
+Die wichtigsten Variablen werden automatisch gesetzt:
+- **N8N_HOST:** Eure Render-URL
+- **N8N_PORT:** 5678
+- **N8N_PROTOCOL:** https
+- **WEBHOOK_URL:** Eure Render-URL
+- **Datenbank:** Automatisch mit der Postgres-DB verbunden
 
-#### Erforderliche Variablen:
-- `NODE_ENV`: `production`
-- `N8N_PORT`: `5678`
-- `N8N_PROTOCOL`: `https`
-- `N8N_HOST`: `eure-app-url.onrender.com`
-- `N8N_BASIC_AUTH_ACTIVE`: `true`
-- `N8N_BASIC_AUTH_USER`: `admin` (oder euer gewünschter Benutzername)
-- `N8N_BASIC_AUTH_PASSWORD`: Generiert einen sicheren Wert
-- `N8N_ENCRYPTION_KEY`: Generiert einen 32-Zeichen-Schlüssel
+### 5. Datenbank
 
-#### Optionale Variablen:
-- `DB_TYPE`: `sqlite` (Standard) oder `postgresdb`
-- `GENERIC_TIMEZONE`: `Europe/Berlin`
-- `N8N_LOG_LEVEL`: `info`
-- `N8N_DIAGNOSTICS_ENABLED`: `false`
+- **PostgreSQL-Datenbank** wird automatisch erstellt
+- **Persistenter Speicher** wird bei `/home/node/.n8n` gemountet
+- **SSL-Verbindung** ist konfiguriert
 
-### 5. Erweiterte Konfiguration
+### 6. Branding anpassen
 
-#### Für PostgreSQL-Datenbank:
-1. Erstellt einen neuen PostgreSQL-Service auf Render
-2. Fügt die Datenbank-Umgebungsvariablen hinzu:
-   - `DB_TYPE`: `postgresdb`
-   - `DB_POSTGRESDB_HOST`: Eure DB-Host-URL
-   - `DB_POSTGRESDB_DATABASE`: Datenbankname
-   - `DB_POSTGRESDB_USER`: Benutzername
-   - `DB_POSTGRESDB_PASSWORD`: Passwort
+Um eure eigenen Logos zu verwenden:
 
-#### Für Redis (Queue Management):
-1. Erstellt einen neuen Redis-Service auf Render
-2. Fügt die Redis-Umgebungsvariablen hinzu:
-   - `QUEUE_BULL_REDIS_HOST`: Redis-Host-URL
-   - `QUEUE_BULL_REDIS_PORT`: `6379`
-   - `QUEUE_BULL_REDIS_PASSWORD`: Redis-Passwort
+1. **Favicon ersetzen:** `branding/favicon.ico`
+2. **Logo ersetzen:** `branding/logo.svg`
+3. **Robots.txt anpassen:** `branding/robots.txt`
+4. **Änderungen committen und pushen**
 
-### 6. Deployment starten
+### 7. Deployment starten
 
 1. Klickt auf "Create Web Service"
-2. Render startet automatisch den Build-Prozess
-3. Das erste Deployment kann 5-10 Minuten dauern
-4. Überwacht die Build-Logs auf Fehler
+2. Render baut das Docker-Image
+3. Der Service startet automatisch
+4. Eure n8n-Instanz ist unter der Render-URL erreichbar
 
-### 7. Nach dem Deployment
+## Features
 
-1. **Erste Anmeldung:**
-   - Geht zu eurer App-URL
-   - Loggt euch mit den Basic Auth-Credentials ein
-   - Erstellt euren ersten Admin-Account
-
-2. **Webhook-URLs aktualisieren:**
-   - Alle Webhook-URLs müssen auf eure neue Render-URL zeigen
-   - Aktualisiert `WEBHOOK_URL` in den Umgebungsvariablen
-
-3. **SSL-Zertifikat:**
-   - Render stellt automatisch SSL-Zertifikate bereit
-   - Alle URLs sollten `https://` verwenden
+✅ **Docker-basiert** - Konsistente Umgebung
+✅ **Custom Branding** - Eure Logos und Favicons
+✅ **PostgreSQL-Datenbank** - Robuste Datenspeicherung
+✅ **Persistenter Speicher** - Workflows bleiben erhalten
+✅ **Health Checks** - Automatische Überwachung
+✅ **SSL/HTTPS** - Sichere Verbindungen
+✅ **Automatische Skalierung** - Render kümmert sich um alles
 
 ## Troubleshooting
 
-### Häufige Probleme:
+### Service startet nicht
+- Überprüft die Logs in Render
+- Stellt sicher, dass alle Umgebungsvariablen gesetzt sind
 
-1. **Build-Fehler:**
-   - Überprüft die Node.js-Version (muss 22+ sein)
-   - Stellt sicher, dass alle Dependencies korrekt installiert werden
+### Branding wird nicht angezeigt
+- Überprüft, ob die Dateien im `branding/` Ordner sind
+- Stellt sicher, dass die Dateien committet und gepusht wurden
 
-2. **Start-Fehler:**
-   - Überprüft die Umgebungsvariablen
-   - Schaut euch die Logs an
-
-3. **Datenbank-Verbindung:**
-   - Bei PostgreSQL: Überprüft die Verbindungsdaten
-   - Bei SQLite: Stellt sicher, dass der Service Schreibrechte hat
-
-### Logs überprüfen:
-
-- Geht zu eurem Service auf Render
-- Klickt auf "Logs"
-- Überwacht die Logs während des Deployments
-
-## Kosten
-
-- **Starter Plan:** $7/Monat (512 MB RAM, Shared CPU)
-- **Standard Plan:** $25/Monat (1 GB RAM, Dedicated CPU)
-- **Pro Plan:** $50/Monat (2 GB RAM, Dedicated CPU)
-
-Für n8n empfehlen wir mindestens den Standard Plan.
+### Datenbank-Verbindung fehlschlägt
+- Überprüft, ob die Postgres-DB läuft
+- Stellt sicher, dass alle DB-Umgebungsvariablen korrekt sind
 
 ## Support
 
 Bei Problemen:
 1. Überprüft die Render-Logs
-2. Schaut euch die n8n-Dokumentation an
-3. Kontaktiert den Render-Support
+2. Stellt sicher, dass alle Dateien korrekt sind
+3. Kontaktiert den Support bei Render-spezifischen Problemen
