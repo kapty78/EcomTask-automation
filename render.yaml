@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: n8n-workflow-automation
+    env: node
+    plan: starter
+    buildCommand: |
+      npm install -g pnpm@10.12.1
+      pnpm install
+      pnpm run build:n8n
+    startCommand: cd packages/cli && pnpm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: N8N_PORT
+        value: 5678
+      - key: N8N_PROTOCOL
+        value: https
+      - key: N8N_HOST
+        value: n8n-workflow-automation.onrender.com
+      - key: N8N_USER_MANAGEMENT_DISABLED
+        value: false
+      - key: N8N_BASIC_AUTH_ACTIVE
+        value: true
+      - key: N8N_BASIC_AUTH_USER
+        value: admin
+      - key: N8N_BASIC_AUTH_PASSWORD
+        generateValue: true
+      - key: N8N_ENCRYPTION_KEY
+        generateValue: true
+      - key: DB_TYPE
+        value: sqlite
+      - key: DB_SQLITE_VACUUM_ON_STARTUP
+        value: true
+      - key: WEBHOOK_URL
+        value: https://n8n-workflow-automation.onrender.com
+      - key: GENERIC_TIMEZONE
+        value: Europe/Berlin
+      - key: N8N_LOG_LEVEL
+        value: info
+      - key: N8N_DIAGNOSTICS_ENABLED
+        value: false
+      - key: N8N_PAYLOAD_SIZE_MAX
+        value: 16
+      - key: N8N_EDITOR_BASE_URL
+        value: https://n8n-workflow-automation.onrender.com
+    healthCheckPath: /healthz
+    autoDeploy: true
