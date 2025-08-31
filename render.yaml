@@ -1,13 +1,9 @@
 services:
   - type: web
     name: n8n-workflow-automation
-    env: node
+    env: docker
     plan: starter
-    buildCommand: |
-      npm install -g pnpm@10.12.1
-      pnpm install
-      pnpm run build:n8n
-    startCommand: cd packages/cli && pnpm start
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
@@ -17,6 +13,8 @@ services:
         value: https
       - key: N8N_HOST
         value: n8n-workflow-automation.onrender.com
+      - key: WEBHOOK_URL
+        value: https://n8n-workflow-automation.onrender.com
       - key: N8N_USER_MANAGEMENT_DISABLED
         value: false
       - key: N8N_BASIC_AUTH_ACTIVE
@@ -27,21 +25,46 @@ services:
         generateValue: true
       - key: N8N_ENCRYPTION_KEY
         generateValue: true
-      - key: DB_TYPE
-        value: sqlite
-      - key: DB_SQLITE_VACUUM_ON_STARTUP
-        value: true
-      - key: WEBHOOK_URL
-        value: https://n8n-workflow-automation.onrender.com
-      - key: GENERIC_TIMEZONE
-        value: Europe/Berlin
-      - key: N8N_LOG_LEVEL
-        value: info
       - key: N8N_DIAGNOSTICS_ENABLED
         value: false
-      - key: N8N_PAYLOAD_SIZE_MAX
-        value: 16
-      - key: N8N_EDITOR_BASE_URL
-        value: https://n8n-workflow-automation.onrender.com
-    healthCheckPath: /healthz
-    autoDeploy: true
+      - key: N8N_PERSONALIZATION_ENABLED
+        value: false
+      - key: GENERIC_TIMEZONE
+        value: Europe/Berlin
+      - key: DB_TYPE
+        value: postgresdb
+      - key: DB_POSTGRESDB_HOST
+        fromDatabase:
+          name: n8n-db
+          property: host
+      - key: DB_POSTGRESDB_PORT
+        fromDatabase:
+          name: n8n-db
+          property: port
+      - key: DB_POSTGRESDB_DATABASE
+        fromDatabase:
+          name: n8n-db
+          property: database
+      - key: DB_POSTGRESDB_USER
+        fromDatabase:
+          name: n8n-db
+          property: username
+      - key: DB_POSTGRESDB_PASSWORD
+        fromDatabase:
+          name: n8n-db
+          property: password
+      - key: DB_POSTGRESDB_SCHEMA
+        value: public
+      - key: DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED
+        value: false
+    disk:
+      name: n8n-data
+      mountPath: /home/node/.n8n
+      sizeGB: 1
+
+databases:
+  - name: n8n-db
+    databaseName: n8n
+    user: n8n_user
+    plan: starter
+    ipAllowList: []
