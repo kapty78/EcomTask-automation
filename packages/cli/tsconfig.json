@@ -1,22 +1,35 @@
 {
-	"extends": [
-		"@n8n/typescript-config/tsconfig.common.json",
-		"@n8n/typescript-config/tsconfig.backend.json"
-	],
 	"compilerOptions": {
+		"target": "es2021",
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"lib": ["es2021", "es2022.error", "dom"],
 		"rootDir": ".",
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"baseUrl": "src",
+		"strict": false,
+		"useUnknownInCatchVariables": false,
+		"removeComments": true,
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitAny": false,
+		"noImplicitReturns": false,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"strictNullChecks": false,
+		"preserveConstEnums": true,
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
+		"incremental": true,
+		"declaration": false,
+		"sourceMap": true,
+		"skipLibCheck": true,
 		"paths": {
 			"@/*": ["./*"],
 			"@test/*": ["../test/shared/*"],
 			"@test-integration/*": ["../test/integration/shared/*"]
 		},
-		"tsBuildInfoFile": "dist/typecheck.tsbuildinfo",
-		// TODO: remove all options below this line
-		"strict": false,
-		"useUnknownInCatchVariables": false
+		"tsBuildInfoFile": "dist/typecheck.tsbuildinfo"
 	},
 	"include": ["src/**/*.ts", "test/**/*.ts", "src/sso.ee/saml/saml-schema-metadata-2.0.xsd"],
 	"references": [
